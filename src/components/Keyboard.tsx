@@ -37,18 +37,7 @@ export default function Keyboard(props: { mode?: Mode; onKeyClick?: (key: Key) =
       if (pressedKey === '_backspace') props.onKeyClick?.('_longpress_backspace');
       if (pressedKey === '_toggle') props.onKeyClick?.('_select');
     },
-
-    // {
-    //   onStart: () => (stopClickEvent.current = false),
-    //   onFinish: () => (stopClickEvent.current = true),
-    // }
   });
-
-  // function handleClickWithLongPress(key: Key) {
-  // if (stopClickEvent.current) return;
-
-  // handleKeyClick(key);
-  // }
 
   const { pressProps } = usePress({
     onPress: (e) => {

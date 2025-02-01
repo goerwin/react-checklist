@@ -56,6 +56,7 @@ export default function App() {
   const editingItem = items.find((item) => item.id === search?.id);
 
   function handleKeyClick(key: Key) {
+    console.log('bb', key);
     const newSearchStr = getNewKeyboardString(search?.search ?? '', key);
     const newSearchTrimmedStr = newSearchStr.trim();
 
@@ -65,9 +66,7 @@ export default function App() {
 
       if (editingItem) {
         setItems((items) =>
-          items.map((item) =>
-            item.id === editingItem.id ? { ...item, ...search, name: newSearchStr } : item
-          )
+          items.map((item) => (item.id === editingItem.id ? { ...item, name: newSearchStr } : item))
         );
 
         return setSearch(undefined);
