@@ -16,7 +16,7 @@ const keys = [
   ['_shift', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '_backspace'],
   ['_numtoggle', '_space', '_toggle'],
   ['_save'],
-  ['_delete', '_save', '_decrease', '_increase', '_priorityminus', '_priorityplus'],
+  ['_save', '_delete', '_decrease', '_increase', '_priorityminus', '_priorityplus'],
 ] as const;
 
 export type Key = (typeof keys)[number][number] | '_longpress_backspace' | '_select';
