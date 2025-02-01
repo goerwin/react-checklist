@@ -165,7 +165,8 @@ export default function App() {
 
   return (
     <div className="flex flex-col w-full h-full">
-      <div className="grow overflow-auto flex-col flex">
+      <span className="text-sm text-center my-2 opacity-45">Version: {GLOBAL_APP_VERSION}</span>
+      <div className="grow overflow-auto">
         {editingItem ? (
           <ItemView
             key={editingItem.id}
@@ -216,7 +217,10 @@ function ItemView(props: {
   return (
     <button
       key={props.item.id}
-      className={cn('group select-none', props.highlighted && 'bg-amber-900')}
+      className={cn(
+        'group select-none flex items-center mb-2',
+        props.highlighted && 'bg-amber-900'
+      )}
       {...mergeProps(longPressProps, pressProps)}
       // onClick={() => {
       //   if (!stopClickEvent.current) props.onClick(props.item.id);
@@ -226,7 +230,7 @@ function ItemView(props: {
       <span
         className={cn(
           'ml-2 mr-2 inline-block w-8 h-8 border border-gray-400 rounded-full',
-          props.item.completed && 'bg-green-400'
+          props.item.completed && 'bg-green-400 border-0'
         )}
       >
         <svg
@@ -241,8 +245,12 @@ function ItemView(props: {
       </span>
 
       {props.item.name}
-      {props.item.quantity ? ` q: (${props.item.quantity})` : ''}
-      {props.item.priority ? ` p: (${props.item.priority})` : ''}
+      {props.item.quantity && props.item.quantity !== DEFAULT_QUANTITY
+        ? ` (${props.item.quantity})`
+        : null}
+      {props.item.priority && props.item.priority !== DEFAULT_PRIORITY ? (
+        <sub className="ml-1 opacity-50">{props.item.priority}</sub>
+      ) : null}
     </button>
   );
 }
