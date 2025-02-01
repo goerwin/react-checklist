@@ -70,7 +70,7 @@ export default function Keyboard(props: { mode?: Mode; onKeyClick?: (key: Key) =
   }
 
   return (
-    <div className="shrink-0 bg-[#2e2e2e] select-none pt-2">
+    <div className="shrink-0 bg-[#2e2e2e] select-none pt-2 px-[4px]">
       {/* keyboard area */}
       <div className="h-[293px] max-w-[500px] mx-auto">
         <div className="grid grid-cols-[repeat(10,37px)] h-[45px] gap-[5.7px] justify-center">
