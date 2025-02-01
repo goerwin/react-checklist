@@ -1,0 +1,253 @@
+import { useRef, useState } from 'react';
+import Keyboard, { getNewKeyboardString, Key } from './components/Keyboard';
+import './App.css';
+import { cn } from './utils/cn';
+import { useLongPress, useLocalStorage } from '@uidotdev/usehooks';
+
+type Item = {
+  id: string;
+  name: string;
+  completed?: boolean;
+  quantity?: number;
+  priority?: number;
+};
+
+const defaultItems: Item[] = [
+  { id: '1', name: 'Arroz' },
+  { id: '3', name: 'Leche' },
+  { id: '4', name: 'Pan' },
+  { id: '6', name: 'Azúcar' },
+  { id: '7', name: 'Sal' },
+  { id: '8', name: 'Aceite' },
+  { id: '2', name: 'Huevos', priority: 2 },
+];
+
+const DEFAULT_QUANTITY = 1;
+const DEFAULT_PRIORITY = 0;
+
+export default function App() {
+  const [items, setItems] = useLocalStorage('checklist_items', defaultItems);
+  const [search, setSearch] = useState<{
+    id?: string;
+    search?: string;
+    quantity?: number;
+    priority?: number;
+  }>();
+
+  // filter and sort items by completed and priority
+  const filteredItems = items.filter(filterBySearchFn(search?.search ?? '')).toSorted((a, b) => {
+    const aPriority = a.priority ?? 0;
+    const bPriority = b.priority ?? 0;
+    const aCompleted = a.completed ?? false;
+    const bCompleted = b.completed ?? false;
+
+    if (aCompleted && !bCompleted) return 1;
+    if (!aCompleted && bCompleted) return -1;
+
+    if (aPriority < bPriority) return 1;
+    if (aPriority > bPriority) return -1;
+
+    return 0;
+  });
+
+  // highligh first item if search is active
+  const highlightedFirstItem = search?.search ? filteredItems.at(0) : undefined;
+
+  const editingItem = items.find((item) => item.id === search?.id);
+
+  function handleKeyClick(key: Key) {
+    const newSearchStr = getNewKeyboardString(search?.search ?? '', key);
+    const newSearchTrimmedStr = newSearchStr.trim();
+
+    // saving an item
+    if (key === '_save') {
+      if (!newSearchTrimmedStr) return setSearch(undefined);
+
+      if (editingItem) {
+        setItems((items) =>
+          items.map((item) =>
+            item.id === editingItem.id ? { ...item, ...search, name: newSearchStr } : item
+          )
+        );
+
+        return setSearch(undefined);
+      }
+
+      const newItem: Item = { id: generateId(), name: newSearchStr };
+      setItems((items) => [...items, newItem]);
+      return setSearch({ ...newItem, search: newItem.name });
+    }
+
+    if (key === '_longpress_backspace') {
+      if (editingItem) setSearch({ ...search, search: undefined });
+      else setSearch(undefined);
+
+      return;
+    }
+
+    if (key === '_toggle') {
+      const activeItem = editingItem || highlightedFirstItem;
+
+      if (!activeItem) return;
+
+      if (!editingItem) setSearch(undefined);
+
+      return setItems((items) =>
+        items.map((item) =>
+          item.id === activeItem.id ? { ...item, completed: !item.completed } : item
+        )
+      );
+    }
+
+    if (key === '_select') {
+      if (editingItem && newSearchTrimmedStr)
+        return setSearch({ ...search, id: undefined, priority: undefined, quantity: undefined });
+
+      if (editingItem) return setSearch(undefined);
+
+      if (!highlightedFirstItem) return;
+      return setSearch({ ...highlightedFirstItem, search: highlightedFirstItem.name });
+    }
+
+    if (key === '_delete') {
+      if (!editingItem) return;
+
+      setSearch(undefined);
+      return setItems((items) => items.filter((item) => item.id !== editingItem.id));
+    }
+
+    if (
+      key === '_increase' ||
+      key === '_decrease' ||
+      key === '_priorityminus' ||
+      key === '_priorityplus'
+    ) {
+      if (!editingItem) return;
+      const additioner = key === '_increase' || key === '_priorityplus' ? 1 : -1;
+      const defaultVal =
+        key === '_increase' || key === '_decrease' ? DEFAULT_QUANTITY : DEFAULT_PRIORITY;
+      const currentVal =
+        key === '_increase' || key === '_decrease' ? editingItem.quantity : editingItem.priority;
+      const qtOrPrKey = key === '_increase' || key === '_decrease' ? 'quantity' : 'priority';
+
+      return setItems((items) =>
+        items.map((item) =>
+          item.id === editingItem.id
+            ? {
+                ...item,
+                [qtOrPrKey]: Math.max(defaultVal, (currentVal ?? defaultVal) + additioner),
+              }
+            : item
+        )
+      );
+    }
+
+    if (editingItem && !newSearchStr) return setSearch({ ...search, search: newSearchStr });
+
+    if (!newSearchStr) return setSearch(undefined);
+
+    setSearch({ ...search, search: newSearchStr });
+  }
+
+  function handleItemClick(id: string) {
+    setItems((items) =>
+      items.map((item) => (item.id === id ? { ...item, completed: !item.completed } : item))
+    );
+  }
+
+  function handleItemLongPress(id: string) {
+    const item = items.find((item) => item.id === id);
+
+    setSearch(item && { ...item, search: item.name });
+  }
+
+  return (
+    <div className="flex flex-col w-full h-full">
+      <div className="grow overflow-auto flex-col flex">
+        {editingItem ? (
+          <ItemView
+            key={editingItem.id}
+            item={editingItem}
+            onClick={handleItemClick}
+            onLongPress={handleItemLongPress}
+            highlighted
+          />
+        ) : (
+          filteredItems.map((item) => (
+            <ItemView
+              key={item.id}
+              item={item}
+              onClick={handleItemClick}
+              onLongPress={handleItemLongPress}
+              highlighted={highlightedFirstItem?.id === item.id}
+            />
+          ))
+        )}
+      </div>
+
+      {search ? (
+        <div className="text-2xl pl-2">
+          <span>{editingItem ? 'Editing: ' : 'Searching: '}</span>
+          <span>{search?.search}</span>
+        </div>
+      ) : null}
+
+      <Keyboard onKeyClick={handleKeyClick} mode={search?.id ? 'edit' : 'normal'} />
+    </div>
+  );
+}
+
+function ItemView(props: {
+  item: Item;
+  highlighted?: boolean;
+  onClick: (id: string) => void;
+  onLongPress: (id: string) => void;
+}) {
+  const stopClickEvent = useRef<boolean>(false);
+  const attrs = useLongPress(() => props.onLongPress(props.item.id), {
+    onStart: () => (stopClickEvent.current = false),
+    onFinish: () => (stopClickEvent.current = true),
+  });
+
+  return (
+    <button
+      key={props.item.id}
+      className={cn('group select-none', props.highlighted && 'bg-amber-900')}
+      onClick={() => {
+        if (!stopClickEvent.current) props.onClick(props.item.id);
+      }}
+      {...attrs}
+    >
+      <span
+        className={cn(
+          'ml-2 mr-2 inline-block w-8 h-8 border border-gray-400 rounded-full',
+          props.item.completed && 'bg-green-400'
+        )}
+      >
+        <svg
+          className={cn('text-white hidden', props.item.completed && 'block')}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        </svg>
+      </span>
+
+      {props.item.name}
+      {props.item.quantity ? ` q: (${props.item.quantity})` : ''}
+      {props.item.priority ? ` p: (${props.item.priority})` : ''}
+    </button>
+  );
+}
+
+function generateId() {
+  return Array.from(crypto.getRandomValues(new Uint8Array(5)))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+function filterBySearchFn(search: string) {
+  return (item: Item) => item.name.toLowerCase().includes(search.toLowerCase());
+}
