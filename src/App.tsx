@@ -1,8 +1,8 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
+import { useLocalStorage } from '@uidotdev/usehooks';
+import { mergeProps, useLongPress, usePress } from 'react-aria';
 import Keyboard, { getNewKeyboardString, Key } from './components/Keyboard';
-import './App.css';
 import { cn } from './utils/cn';
-import { useLongPress, useLocalStorage } from '@uidotdev/usehooks';
 
 type Item = {
   id: string;
@@ -158,6 +158,8 @@ export default function App() {
   function handleItemLongPress(id: string) {
     const item = items.find((item) => item.id === id);
 
+    if (editingItem) return setSearch(undefined);
+
     setSearch(item && { ...item, search: item.name });
   }
 
@@ -203,20 +205,23 @@ function ItemView(props: {
   onClick: (id: string) => void;
   onLongPress: (id: string) => void;
 }) {
-  const stopClickEvent = useRef<boolean>(false);
-  const attrs = useLongPress(() => props.onLongPress(props.item.id), {
-    onStart: () => (stopClickEvent.current = false),
-    onFinish: () => (stopClickEvent.current = true),
+  const { longPressProps } = useLongPress({
+    onLongPress: () => props.onLongPress(props.item.id),
+  });
+
+  const { pressProps } = usePress({
+    onPress: () => props.onClick(props.item.id),
   });
 
   return (
     <button
       key={props.item.id}
       className={cn('group select-none', props.highlighted && 'bg-amber-900')}
-      onClick={() => {
-        if (!stopClickEvent.current) props.onClick(props.item.id);
-      }}
-      {...attrs}
+      {...mergeProps(longPressProps, pressProps)}
+      // onClick={() => {
+      //   if (!stopClickEvent.current) props.onClick(props.item.id);
+      // }}
+      // {...attrs}
     >
       <span
         className={cn(

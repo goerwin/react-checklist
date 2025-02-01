@@ -1,5 +1,5 @@
-import { ComponentProps, useRef } from 'react';
-import { useLongPress } from '@uidotdev/usehooks';
+import { ComponentProps } from 'react';
+import { mergeProps, useLongPress, usePress } from 'react-aria';
 import TempKeyboardJpg from '../assets/temp-keyboard.jpeg';
 import DeleteIcon from './icons/DeleteIcon';
 import SelectIcon from './icons/SelectIcon';
@@ -24,30 +24,44 @@ export type Key = (typeof keys)[number][number] | '_longpress_backspace' | '_sel
 
 type Mode = 'normal' | 'edit';
 
+function getEventValueKey(e: Partial<Event>) {
+  if (!e.target || !('value' in e.target) || typeof e.target.value !== 'string') return;
+
+  return e.target.value as Key;
+}
+
 export default function Keyboard(props: { mode?: Mode; onKeyClick?: (key: Key) => void }) {
-  const stopClickEvent = useRef<boolean>(false);
-
-  const attrs = useLongPress(
-    (e) => {
-      if (!e.target || !('value' in e.target) || typeof e.target.value !== 'string') return;
-
-      // note: I'm sure that e.target.value is a Key but have to use "as Key"
-      const pressedKey = e.target.value as Key;
+  const { longPressProps } = useLongPress({
+    onLongPress: (e) => {
+      const pressedKey = getEventValueKey(e);
 
       if (pressedKey === '_backspace') props.onKeyClick?.('_longpress_backspace');
       if (pressedKey === '_toggle') props.onKeyClick?.('_select');
     },
-    {
-      onStart: () => (stopClickEvent.current = false),
-      onFinish: () => (stopClickEvent.current = true),
-    }
-  );
 
-  function handleClickWithLongPress(key: Key) {
-    if (stopClickEvent.current) return;
+    // {
+    //   onStart: () => (stopClickEvent.current = false),
+    //   onFinish: () => (stopClickEvent.current = true),
+    // }
+  });
 
-    handleKeyClick(key);
-  }
+  // function handleClickWithLongPress(key: Key) {
+  // if (stopClickEvent.current) return;
+
+  // handleKeyClick(key);
+  // }
+
+  const { pressProps } = usePress({
+    onPress: (e) => {
+      const key = getEventValueKey(e);
+
+      if (!key) return;
+      if (key === '_shift') return;
+      if (key === '_numtoggle') return;
+
+      props.onKeyClick?.(key);
+    },
+  });
 
   function handleKeyClick(key: Key) {
     if (key === '_shift') return;
@@ -68,14 +82,14 @@ export default function Keyboard(props: { mode?: Mode; onKeyClick?: (key: Key) =
       <div className="mx-[4px] h-[293px]">
         <div className="grid grid-cols-[repeat(10,37px)] h-[45px] gap-[5.7px]">
           {keys[0].map((key) => (
-            <KeyboardKey value={key} onClick={handleKeyClick} key={key}>
+            <KeyboardKey value={key} onClick={() => handleKeyClick(key)} key={key}>
               {getKeyLabel(key)}
             </KeyboardKey>
           ))}
         </div>
         <div className="grid grid-cols-[repeat(10,37px)] h-[45px] gap-[5.7px] mt-[11px]">
           {keys[1].map((key) => (
-            <KeyboardKey value={key} onClick={handleKeyClick} key={key}>
+            <KeyboardKey value={key} onClick={() => handleKeyClick(key)} key={key}>
               {getKeyLabel(key)}
             </KeyboardKey>
           ))}
@@ -86,10 +100,9 @@ export default function Keyboard(props: { mode?: Mode; onKeyClick?: (key: Key) =
             return (
               <KeyboardKey
                 value={key}
-                onClick={handleClickWithLongPress}
                 key={key}
-                {...attrs}
                 className={cn((key === '_backspace' || key === '_shift') && 'bg-[#494949]')}
+                {...mergeProps(longPressProps, pressProps)}
               >
                 {getKeyLabel(key)}
               </KeyboardKey>
@@ -101,10 +114,9 @@ export default function Keyboard(props: { mode?: Mode; onKeyClick?: (key: Key) =
           {keys[3].map((key) => (
             <KeyboardKey
               value={key}
-              onClick={handleClickWithLongPress}
               key={key}
-              {...attrs}
               className={cn(key === '_toggle' && 'bg-green-700')}
+              {...mergeProps(longPressProps, pressProps)}
             >
               {getKeyLabel(key)}
             </KeyboardKey>
@@ -115,7 +127,7 @@ export default function Keyboard(props: { mode?: Mode; onKeyClick?: (key: Key) =
           {(props.mode === 'edit' ? keys[5] : keys[4]).map((key) => (
             <KeyboardKey
               value={key}
-              onClick={handleKeyClick}
+              onClick={() => handleKeyClick(key)}
               key={key}
               className={cn(key === '_delete' && 'bg-red-400', key === '_save' && 'bg-green-600')}
             >
@@ -129,12 +141,11 @@ export default function Keyboard(props: { mode?: Mode; onKeyClick?: (key: Key) =
 }
 
 function KeyboardKey(
-  props: Omit<ComponentProps<'button'>, 'onClick' | 'value'> & {
-    onClick: (key: Key) => void;
+  props: Omit<ComponentProps<'button'>, 'value'> & {
     value: Key;
   }
 ) {
-  const { onClick, value, className, ...rest } = props;
+  const { value, className, ...rest } = props;
 
   return (
     <button
@@ -143,7 +154,6 @@ function KeyboardKey(
         'bg-[#6d6d6d] text-white rounded-md shadow-black shadow-2xs text-[22px]',
         className
       )}
-      onClick={() => onClick(value)}
       {...rest}
     />
   );
