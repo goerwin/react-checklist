@@ -15,7 +15,9 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       manifest: {
+        name: 'Checklist',
         background_color: '#242424',
+        theme_color: '#242424',
         icons: [
           {
             src: '/icon-chicken/web/icon-192-maskable.png',
