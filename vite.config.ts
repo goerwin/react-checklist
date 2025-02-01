@@ -16,6 +16,7 @@ export default defineConfig({
     VitePWA({
       manifest: {
         name: 'Checklist',
+        short_name: 'Checklist',
         background_color: '#242424',
         theme_color: '#242424',
         icons: [
