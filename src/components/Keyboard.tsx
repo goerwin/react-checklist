@@ -1,6 +1,5 @@
 import { ComponentProps } from 'react';
 import { mergeProps, useLongPress, usePress } from 'react-aria';
-import TempKeyboardJpg from '../assets/temp-keyboard.jpeg';
 import DeleteIcon from './icons/DeleteIcon';
 import SelectIcon from './icons/SelectIcon';
 import AddIcon from './icons/AddIcon';
@@ -72,22 +71,16 @@ export default function Keyboard(props: { mode?: Mode; onKeyClick?: (key: Key) =
 
   return (
     <div className="shrink-0 bg-[#2e2e2e] select-none pt-2">
-      <img
-        src={TempKeyboardJpg}
-        alt="keyboard"
-        className="fixed bottom-0 pointer-events-none hidden"
-      />
-
       {/* keyboard area */}
-      <div className="mx-[4px] h-[293px]">
-        <div className="grid grid-cols-[repeat(10,37px)] h-[45px] gap-[5.7px]">
+      <div className="h-[293px] max-w-[500px] mx-auto">
+        <div className="grid grid-cols-[repeat(10,37px)] h-[45px] gap-[5.7px] justify-center">
           {keys[0].map((key) => (
             <KeyboardKey value={key} onClick={() => handleKeyClick(key)} key={key}>
               {getKeyLabel(key)}
             </KeyboardKey>
           ))}
         </div>
-        <div className="grid grid-cols-[repeat(10,37px)] h-[45px] gap-[5.7px] mt-[11px]">
+        <div className="grid grid-cols-[repeat(10,37px)] h-[45px] gap-[5.7px] justify-center mt-[11px]">
           {keys[1].map((key) => (
             <KeyboardKey value={key} onClick={() => handleKeyClick(key)} key={key}>
               {getKeyLabel(key)}
