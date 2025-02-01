@@ -111,6 +111,8 @@ export default function App() {
     if (key === '_delete') {
       if (!editingItem) return;
 
+      if (!window.confirm(`Delete ${editingItem.name}?`)) return;
+
       setSearch(undefined);
       return setItems((items) => items.filter((item) => item.id !== editingItem.id));
     }
