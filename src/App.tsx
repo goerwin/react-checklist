@@ -175,12 +175,15 @@ export default function App() {
 
   return (
     <div className="flex flex-col w-full h-full">
-      <span className="text-sm text-center mt-2 opacity-45">Version: {GLOBAL_APP_VERSION} </span>
-      <div className='text-center mb-2 justify-items-center'>
-        <a href={GLOBAL_GITHUB_URL} target="_blank" rel="noreferrer" className='text-blue-300 text-xs flex'>
-          @{GLOBAL_AUTHOR}/{GLOBAL_NAME}
-        </a>
-      </div>
+      <a
+        href={GLOBAL_GITHUB_URL}
+        target="_blank"
+        rel="noreferrer"
+        className="text-blue-300 text-xs flex self-center mt-2 mb-4"
+      >
+        @{GLOBAL_AUTHOR}/{GLOBAL_NAME}@{GLOBAL_APP_VERSION}
+      </a>
+
       <div className="grow overflow-auto">
         {editingItem ? (
           <ItemView
