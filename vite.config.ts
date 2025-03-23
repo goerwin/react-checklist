@@ -8,8 +8,9 @@ import pkgJson from './package.json';
 export default defineConfig({
   define: {
     GLOBAL_APP_VERSION: JSON.stringify(pkgJson.version),
+    GLOBAL_NAME: JSON.stringify(pkgJson.name),
+    GLOBAL_AUTHOR: JSON.stringify(pkgJson.author.name),
     GLOBAL_GITHUB_URL: JSON.stringify(pkgJson.repository.url),
-    GLOBAL_GITHUB_NAME: JSON.stringify(pkgJson.repository.name),
   },
   base: '/react-checklist/',
   plugins: [

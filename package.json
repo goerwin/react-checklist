@@ -1,11 +1,13 @@
 {
   "name": "checklist",
   "private": true,
-  "version": "2.4.6",
+  "version": "2.4.8",
   "type": "module",
+  "author": {
+    "name": "goerwin"
+  },
   "repository": {
     "type": "git",
-    "name": "@goerwin/react-checklist",
     "url": "https://github.com/goerwin/react-checklist"
   },
   "scripts": {
