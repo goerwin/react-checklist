@@ -1,4 +1,4 @@
-import { ComponentProps } from 'react';
+import type { ComponentProps } from 'react';
 import { mergeProps, useLongPress, usePress } from 'react-aria';
 import DeleteIcon from './icons/DeleteIcon';
 import SelectIcon from './icons/SelectIcon';
@@ -167,10 +167,12 @@ function getKeyLabel(key: Key) {
  */
 // eslint-disable-next-line
 export function getNewKeyboardString(curStr: string, key: Key) {
-  if (!key.startsWith('_')) curStr = curStr.concat(key);
+  let newCurStr = curStr;
 
-  if (key === '_backspace') curStr = curStr.slice(0, -1);
-  if (key === '_space') curStr = curStr.concat(' ');
+  if (!key.startsWith('_')) newCurStr = newCurStr.concat(key);
 
-  return curStr.trimStart();
+  if (key === '_backspace') newCurStr = newCurStr.slice(0, -1);
+  if (key === '_space') newCurStr = newCurStr.concat(' ');
+
+  return newCurStr.trimStart();
 }

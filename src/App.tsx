@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLocalStorage } from '@uidotdev/usehooks';
 import { mergeProps, useLongPress, usePress } from 'react-aria';
-import Keyboard, { getNewKeyboardString, Key } from './components/Keyboard';
+import Keyboard, { getNewKeyboardString, type Key } from './components/Keyboard';
 import { cn } from './utils/cn';
 
 type Item = {
@@ -24,6 +24,15 @@ const defaultItems: Item[] = [
 
 const DEFAULT_QUANTITY = 1;
 const DEFAULT_PRIORITY = 0;
+
+/**
+ * saves new item at first position and returns the new Items
+ */
+function saveNewItem(items: Item[], newItem: Item) {
+  const newItems = items.filter((i) => i.id !== newItem.id);
+  newItems.unshift({ ...newItem });
+  return newItems;
+}
 
 export default function App() {
   const [items, setItems] = useLocalStorage('checklist_items', defaultItems);
@@ -56,7 +65,6 @@ export default function App() {
   const editingItem = items.find((item) => item.id === search?.id);
 
   function handleKeyClick(key: Key) {
-    console.log('bb', key);
     const newSearchStr = getNewKeyboardString(search?.search ?? '', key);
     const newSearchTrimmedStr = newSearchStr.trim();
 
@@ -65,10 +73,7 @@ export default function App() {
       if (!newSearchTrimmedStr) return setSearch(undefined);
 
       if (editingItem) {
-        setItems((items) =>
-          items.map((item) => (item.id === editingItem.id ? { ...item, name: newSearchStr } : item))
-        );
-
+        setItems((items) => saveNewItem(items, { ...editingItem, name: newSearchStr }));
         return setSearch(undefined);
       }
 
@@ -92,9 +97,7 @@ export default function App() {
       if (!editingItem) setSearch(undefined);
 
       return setItems((items) =>
-        items.map((item) =>
-          item.id === activeItem.id ? { ...item, completed: !item.completed } : item
-        )
+        saveNewItem(items, { ...activeItem, completed: !activeItem.completed })
       );
     }
 
@@ -151,8 +154,14 @@ export default function App() {
   }
 
   function handleItemClick(id: string) {
+    const selectedItem = items.find((item) => item.id === id);
+
+    if (!selectedItem) {
+      return;
+    }
+
     setItems((items) =>
-      items.map((item) => (item.id === id ? { ...item, completed: !item.completed } : item))
+      saveNewItem(items, { ...selectedItem, completed: !selectedItem.completed })
     );
   }
 
@@ -241,6 +250,7 @@ function ItemView(props: {
           viewBox="0 0 24 24"
           xmlns="http://www.w3.org/2000/svg"
         >
+          <title>checkbox</title>
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
         </svg>
       </span>
