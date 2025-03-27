@@ -1,7 +1,7 @@
 {
   "name": "react-checklist",
   "private": true,
-  "version": "2.6.4",
+  "version": "2.6.8",
   "type": "module",
   "author": {
     "name": "goerwin"

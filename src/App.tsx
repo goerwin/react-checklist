@@ -179,7 +179,7 @@ export default function App() {
         href={GLOBAL_GITHUB_URL}
         target="_blank"
         rel="noreferrer"
-        className="text-blue-300 text-xs flex self-center mt-2 mb-4 font-bold"
+        className="text-blue-300 flex self-center mt-2 mb-4 font-bold"
       >
         @{GLOBAL_AUTHOR}/{GLOBAL_NAME}@{GLOBAL_APP_VERSION}
       </a>
